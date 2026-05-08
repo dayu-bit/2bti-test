@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2BTI - 鬼畜全明星人格测试</title>
+<style>
+:root {
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --accent: #f093fb;
+  --bg: #0f0f1a;
+  --card: rgba(255,255,255,0.08);
+  --text: #ffffff;
+  --text-muted: rgba(255,255,255,0.6);
+  --border: rgba(255,255,255,0.15);
+  --radius: 20px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 背景粒子 */
+.bg-particles {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  opacity: 0.3;
+  animation: float 8s infinite ease-in-out;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(180deg); }
+}
+
+/* 屏幕容器 */
+.screen {
+  display: none;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 20px 16px 100px;
+}
+.screen.active { display: block; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 封面 */
+.cover {
+  text-align: center;
+  padding-top: 60px;
+}
+.cover-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 30px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+  50% { box-shadow: 0 0 0 15px rgba(102, 126, 234, 0); }
+}
+.cover-icon {
+  width: 120px; height: 120px;
+  margin: 0 auto 30px;
+  position: relative;
+}
+.cover-icon::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 50%;
+  animation: spin 8s linear infinite;
+}
+.cover-icon::after {
+  content: '🎭';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.cover-title {
+  font-size: 48px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+  letter-spacing: 4px;
+}
+.cover-subtitle {
+  font-size: 18px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 40px;
+}
+.cover-desc {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+.cover-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.stat {
+  text-align: center;
+}
+.stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.btn-start {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border: none;
+  padding: 16px 60px;
+  border-radius: 50px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-start:active { transform: scale(0.95); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3); }
+
+/* 题目页面 */
+.q-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.q-num {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.q-progress {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+  margin-left: 20px;
+  overflow: hidden;
+}
+.q-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.q-card {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  margin-bottom: 28px;
+  backdrop-filter: blur(10px);
+}
+.q-title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  color: #fff;
+}
+.q-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.options { display: flex; flex-direction: column; gap: 12px; }
+.opt {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  font-size: 17px;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+}
+.opt::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.opt:active { transform: scale(0.98); }
+.opt.selected {
+  border-color: var(--primary);
+  background: rgba(102, 126, 234, 0.15);
+}
+.opt.selected::before { opacity: 1; }
+
+/* 加载动画 */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.loading-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.loader {
+  width: 60px; height: 60px;
+  border: 4px solid var(--card);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+.loading-text {
+  margin-top: 20px;
+  font-size: 15px;
+  color: var(--text-muted);
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* 结果页 */
+.result {
+  text-align: center;
+  padding-top: 40px;
+}
+.result-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  padding: 6px 18px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.result-avatar {
+  width: 140px; height: 140px;
+  margin: 0 auto 24px;
+  position: relative;
+}
+.result-avatar::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 50%;
+  animation: spin 4s linear infinite;
+  z-index: -1;
+}
+.result-avatar-inner {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+}
+.result h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #fff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.result-subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 30px;
+}
+.result-desc {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.9;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 24px;
+}
+.result-match {
+  background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.match-title {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.match-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.match-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+.match-text {
+  font-size: 20px;
+  font-weight: 700;
+}
+.result-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+.result-tag {
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 50px;
+  color: var(--text-muted);
+}
+.btn-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.btn-retry {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-share {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* 底部进度指示 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15,15,26,0.95);
+  backdrop-filter: blur(10px);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  z-index: 10;
+}
+.nav-dots {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 200px;
+  scrollbar-width: none;
+}
+.nav-dots::-webkit-scrollbar { display: none; }
+.nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.nav-dot.done { background: var(--primary); }
+.nav-dot.current { background: var(--accent); width: 24px; border-radius: 4px; }
+.nav-info { font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- 背景粒子 -->
+<div class="bg-particles" id="particles"></div>
+
+<!-- 加载动画 -->
+<div class="loading-overlay" id="loading">
+  <div class="loader"></div>
+  <p class="loading-text">正在分析你的灵魂...</p>
+</div>
+
+<!-- 封面 -->
+<div class="screen active" id="screen-cover">
+  <div class="cover">
+    <div class="cover-badge">
+      <span>🎭</span>
+      <span>B站 2BTI 人格测试</span>
+    </div>
+    <div class="cover-icon"></div>
+    <h1 class="cover-title">2BTI</h1>
+  <p class="cover-subtitle">鬼畜全明星人格测试</p>
+    <p class="cover-desc">
+      20道灵魂拷问，测出你在互联网的<br>
+      <strong style="color:white">精神人设</strong>
+    </p>
+    <div class="cover-stats">
+      <div class="stat">
+        <div class="stat-num">20</div>
+        <div class="stat-label">道精选题目</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">32</div>
+        <div class="stat-label">种结果人格</div>
+      </div>
+    </div>
+    <button class="btn-start" onclick="startTest()">开始测试 →</button>
+  </div>
+</div>
+
+<!-- 题目容器 -->
+<div id="questions-container"></div>
+
+<!-- 结果 -->
+<div class="screen" id="screen-result">
+  <div class="result" id="result-content"></div>
+</div>
+
+<script>
+// ====== 题目数据 (20道) ======
+const questions = [
+  {
+    title: "早上被闹钟吵醒，你的反应是？",
+    opts: [
+      "精神抖擞，马上起床迎接新的一天",
+      "关掉闹钟再睡5分钟",
+      "根本听不见，睡到自然醒",
+      "假装没听到，等别人来叫"
+    ]
+  },
+  {
+    title: "朋友说你最近胖了，你怎么回应？",
+    opts: [
+      "当场制定健身计划，三天后见效",
+      "承认，但觉得圆润点也有福气",
+      "这是壮，不是胖！",
+      "转移话题，假装没听到"
+    ]
+  },
+  {
+    title: "看到一条特别搞笑的视频，你会？",
+    opts: [
+      "立刻转发给所有好友",
+      "先收藏，改天发群里炸场",
+      "默默笑，然后假装没发生",
+      "模仿视频里的话术到处说"
+    ]
+  },
+  {
+    title: "吃到一份超级难吃的外卖，你决定？",
+    opts: [
+      "拍照取证，立刻差评+举报",
+      "为了不浪费，硬着头皮吃完",
+      "发朋友圈吐槽，图文并茂",
+      "无所谓，填饱肚子就行"
+    ]
+  },
+  {
+    title: "你的微信头像是什么风格？",
+    opts: [
+      "本人照片，帅气/美丽自信",
+      "宠物或风景，低调内涵",
+      "表情包或搞笑图片",
+      "好几年没换过，随便放的"
+    ]
+  },
+  {
+    title: "朋友向你借钱，200块，你会？",
+    opts: [
+      "直接转，说不用还了",
+      "问清楚用途再决定借不借",
+      "哭穷婉拒，说自己也没钱",
+      "已读不回，过几天再敷衍"
+    ]
+  },
+  {
+    title: "开会时领导问你意见，你通常？",
+    opts: [
+      "积极发言，展现自己的思考",
+      "点头附和，保命要紧",
+      "低头看手机，假装在记笔记",
+      "等别人说完再补充"
+    ]
+  },
+  {
+    title: "周末你更愿意？",
+    opts: [
+      "出门社交，聚会逛街不宅家",
+      "在家躺着恢复能量",
+      "加班搞钱，闲着心慌",
+      "刷视频打游戏虚度光阴"
+    ]
+  },
+  {
+    title: "如果你有一百万，你会？",
+    opts: [
+      "投资理财前，先买房",
+      "辞职去环游世界",
+      "存银行吃利息，躺平",
+      "买点喜欢的东西犒劳自己"
+    ]
+  },
+  {
+    title: "别人给你介绍对象，你的反应是？",
+    opts: [
+      "积极了解，先看照片",
+      "嘴上说随缘，其实很期待",
+      "婉拒，觉得一个人挺好",
+      "各种理由推脱，逃避"
+    ]
+  },
+  {
+    title: "看到不公正的事，你会？",
+    opts: [
+      "路见不平一声吼，该出手就出手",
+      "默默录像取证，事后发网上",
+      "假装没看见，不惹事",
+      "发朋友圈吐槽正义两句"
+    ]
+  },
+  {
+    title: "你的工作态度更接近？",
+    opts: [
+      "拼命三郎，必须做到最好",
+      "完成分内事，到点下班",
+      "能推就推，划水摸鱼",
+      "看心情，心情好就认真干"
+    ]
+  },
+  {
+    title: "你和陌生人吵架了，对方很凶，你会？",
+    opts: [
+      "绝不认怂，必须硬刚到底",
+      "表面冷静，内心已经慌了",
+      "忍一时风平浪静，走了",
+      "找帮手，绝不单打独斗"
+    ]
+  },
+  {
+    title: "你最受不了哪种行为？",
+    opts: [
+      "说话不算数，没有诚信",
+      "背后搞小动作，阴险狡诈",
+      "效率低下，浪费时间",
+      "不分场合，没有眼力见"
+    ]
+  },
+  {
+    title: "收到老板的加班消息，你通常？",
+    opts: [
+      "秒回，好的没问题马上来",
+      "等一会儿再回，装没看到",
+      "直接已读不回",
+      "说明天再说，今天有安排"
+    ]
+  },
+  {
+    title: "你最喜欢哪种类型的短视频？",
+    opts: [
+      "正能量励志鸡血型",
+      "搞笑段子整活型",
+      "知识干货学习型",
+      "吃播探店娱乐型"
+    ]
+  },
+  {
+    title: "如果有人当众羞辱你，你会？",
+    opts: [
+      "当场反击，让他下不来台",
+      "忍住，事后找机会报复",
+      "尴尬笑笑，假装不在乎",
+      "哭着跑开，越想越气"
+    ]
+  },
+  {
+    title: "你理想的退休生活是？",
+    opts: [
+      "环游世界，看遍风景",
+      "含饴弄孙，享受天伦",
+      "找个小院，种花养草",
+      "继续工作，闲不住"
+    ]
+  },
+  {
+    title: "和朋友KTV唱歌，你通常是？",
+    opts: [
+      "麦霸，从头唱到尾",
+      "默默听，偶尔跟着哼",
+      "低头玩手机，等散场",
+      "气氛组，负责鼓掌喝彩"
+    ]
+  },
+  {
+    title: "给你一个机会上电视，你会？",
+    opts: [
+      "表现自己，让大家认识我",
+      "紧张害怕，还是算了",
+      "无所谓，当背景板也行",
+      "先想好要说什么台词"
+    ]
+  }
+];
+
+// ====== 结果数据 (32种鬼畜人格) ======
+const results = [
+  {
+    name: "梁非凡",
+    title: "超雄领导型人格",
+    emoji: "🗣️",
+    desc: "你就是天生的领导范儿！气势足、嗓门大、精力旺盛。开会你是主场，吵架你从没输过。下属听到你的声音就紧张，同事看到你的眼神就心虚。你就是那个让人又怕又离不开的存在！",
+    tags: ["领导气场", "气势压人", "超雄本色", "掌控全场"],
+    match: 95
+  },
+  {
+    name: "刘醒",
+    title: "卧底特工型人格",
+    emoji: "🕵️",
+    desc: "表面平静如水，内心波涛汹涌。你善于观察、善于伪装、善于在关键时刻给人致命一击。别人以为你在摸鱼，其实你在下一盘大棋。低调是你的人生哲学，逆袭是你的拿手好戏。",
+    tags: ["深藏不露", "察言观色", "暗中观察", "一鸣惊人"],
+    match: 92
+  },
+  {
+    name: "元首",
+    title: "暴君型人格",
+    emoji: "😤",
+    desc: "你有着强烈的控制欲和完美主义，见不得任何差错。一旦有人惹你不爽，后果不堪设想。你的愤怒可以毁天灭地，你的吐槽可以让人当场社死。别惹你，真的。",
+    tags: ["愤怒源泉", "完美主义", "不能出错", "惹不起"],
+    match: 88
+  },
+  {
+    name: "王境泽",
+    title: "真香定律型人格",
+    emoji: "🍚",
+    desc: "你嘴上说不要，身体很诚实。立flag从不食言，打脸也从不手软。说过的不算数，刚说完就变卦。你就是行走的真香定律代言人，人生就是不断立flag不断打脸的过程。",
+    tags: ["真香警告", "立flag大师", "嘴硬心软", "打脸体质"],
+    match: 90
+  },
+  {
+    name: "波澜哥",
+    title: "深情款款型人格",
+    emoji: "🎤",
+    desc: "你是个有故事的人。每段感情你都全身心投入，哪怕遍体鳞伤也要爱到底。你的深情让人动容，你的执着让人心疼。爱情对你来说就是生命的全部意义。",
+    tags: ["深情不寿", "为爱痴狂", "KTV常驻", "麦霸本霸"],
+    match: 87
+  },
+  {
+    name: "面筋哥",
+    title: "怀才不遇型人格",
+    emoji: "🎸",
+    desc: "你明明很有才华，却总是被埋没。你的特长没人欣赏，你的努力没人看见。但你不放弃，始终相信总有一天会出人头地。面筋哥精神，永不言弃！",
+    tags: ["怀才不遇", "坚持梦想", "草根逆袭", "潜力股"],
+    match: 85
+  },
+  {
+    name: "窃格瓦拉",
+    title: "自由至上型人格",
+    emoji: "🔑",
+    desc: "打工是不可能的，这辈子都不可能打工！你追求的是绝对的自由，不想被任何规则束缚。你的思想领先同龄人三十年，只想做个快乐的人。",
+    tags: ["自由至上", "躺平鼻祖", "思想超前", "人间逍遥"],
+    match: 93
+  },
+  {
+    name: "孙笑川",
+    title: "抽象大师型人格",
+    emoji: "☯️",
+    desc: "你的行为无法被常人理解，你的语言充满了抽象美学。你是互联网的弄潮儿，是热点的制造机。你做的事说的话永远出人意料，但细想又好像很有道理。",
+    tags: ["抽象大师", "流量密码", "无法理解", "迷惑行为"],
+    match: 89
+  },
+  {
+    name: "华强",
+    title: "狠人型人格",
+    emoji: "🔪",
+    desc: "买瓜我们是认真的，做人我们是狠的。你做事干净利落，不拖泥带水。对敌人绝不手软，对目标势在必得。你就是那个让所有人闻风丧胆的存在！",
+    tags: ["买瓜专业户", "狠人本色", "目标导向", "不好惹"],
+    match: 86
+  },
+  {
+    name: "马牛逼",
+    title: "自信爆棚型人格",
+    emoji: "💫",
+    desc: "你的字典里没有低调两个字。嘴上能吹，手里能打，天生就是主角命。别人觉得你狂？你微微一笑：狂是因为有资本！牛皮不是吹的，你是真的牛！",
+    tags: ["自信满满", "说到做到", "我就是主角", "狂有狂的资本"],
+    match: 91
+  },
+  {
+    name: "良子",
+    title: "接地气本气型",
+    emoji: "🤙",
+    desc: "你就是那个最真实的普通人。不装、不端、不做作。有啥说啥，爱咋咋。你的视频可能不精致，但特别真实。在这个全员表演的时代，你就是清流。",
+    tags: ["接地气", "真实不做作", "普通人的快乐", "人间清醒"],
+    match: 88
+  },
+  {
+    name: "老八",
+    title: "娱乐至死型人格",
+    emoji: "🫡",
+    desc: "你深知互联网的流量密码——先自黑者赢天下。别人觉得你丢脸？你微微一笑：流量到手！奥利给，干了！你是那个把快乐建立在自我牺牲上的狠人。",
+    tags: ["自黑达人", "流量密码", "娱乐精神", "干了兄弟们"],
+    match: 84
+  },
+  {
+    name: "郭老师",
+    title: "迷雅独特型人格",
+    emoji: "🌀",
+    desc: "你走的是一条无人走过的路。管他什么审美标准，你就是标准。你的存在本身就是一种态度：我不模仿谁，我就是我自己！猕糊！",
+    tags: ["不走寻常路", "风格独特", "迷雅本雅", "做自己"],
+    match: 83
+  },
+  {
+    name: "冬泳怪鸽",
+    title: "正能量战士型",
+    emoji: "🏊",
+    desc: "你这个人就是硬气！别人觉得冷，你敢下；别人觉得难，你敢冲。每天给自己打鸡血，坚信干就完了！生活虐你千百遍，你待生活如初恋！",
+    tags: ["意志力满格", "正能量代表", "狠人一个", "干就完了"],
+    match: 87
+  },
+  {
+    name: "小马七",
+    title: "社会狠人型人格",
+    emoji: "🕶️",
+    desc: "出门在外靠朋友，你的朋友就是多。社交达人是你，情商高手也是你。你能在各种场合游刃有余，也能和各种人称兄道弟。社会你马哥，人狠话不多。",
+    tags: ["社交达人", "朋友遍天下", "义气为先", "场面人"],
+    match: 86
+  },
+  {
+    name: "律师函警告",
+    title: "维权斗士型人格",
+    emoji: "📜",
+    desc: "你的法律意识特别强，动不动就要发律师函。虽然大部分时候只是口头警告，但你的气势足以让对方闻风丧胆。不许欺负我，我有律师！",
+    tags: ["法律意识强", "维权先锋", "律师函警告", "不好惹"],
+    match: 82
+  },
+  {
+    name: "张大碦",
+    title: "努力奋斗型人格",
+    emoji: "💪",
+    desc: "成功靠的是努力！你每天早出晚归，拼命工作，为的就是有一天能出人头地。虽然过程很苦，但你从不抱怨。你的座右铭是：只要干不死，就往死里干！",
+    tags: ["拼命干", "努力奋斗", "奋斗逼", "天道酬勤"],
+    match: 88
+  },
+  {
+    name: "打工人们",
+    title: "社畜型人格",
+    emoji: "💼",
+    desc: "你是那个默默加班到深夜的打工人。工资不高，房租很贵，老板很烦，客户很刁。但你依然坚持，因为你知道：除了上班，还能怎么办呢？",
+    tags: ["打工人", "社畜本畜", "加班达人", "人间真实"],
+    match: 90
+  },
+  {
+    name: "鸡汤来了",
+    title: "心灵导师型人格",
+    emoji: "🍲",
+    desc: "你的人生充满了哲理，一碗碗热腾腾的鸡汤温暖人心。虽然有时候鸡汤喝多了会腻，但不得不说，有时候真的管用。生活需要正能量，你就是那个传递者！",
+    tags: ["心灵导师", "鸡汤大师", "正能量传递者", "暖心本暖"],
+    match: 81
+  },
+  {
+    name: "伏拉夫",
+    title: "中国吹型人格",
+    emoji: "🇨🇳",
+    desc: "你对美好事物的热爱毫不掩饰。任何好东西到你嘴里都是绝了绝了！你的热情让人感染，你的赞美让人飘起来。不愧是你！very good！",
+    tags: ["绝不绝", "中国好", "热情满满", "赞美大师"],
+    match: 80
+  },
+  {
+    name: "影流之主",
+    title: "分身大师型人格",
+    emoji: "👤",
+    desc: "你善于给自己留后路，一个不够就两个，两个不够就三个。做事留三分，说话留七分。你就是那个永远让人猜不透的神秘存在。",
+    tags: ["分身有术", "留有后手", "神秘莫测", "难以捉摸"],
+    match: 79
+  },
+  {
+    name: "金拱门",
+    title: "洋气精致型人格",
+    emoji: "🍔",
+    desc: "你追求的是品质生活，吃要吃好的，用要用牌的。虽然偶尔被说崇洋媚外，但你不在乎。生活已经这么苦了，对自己好点怎么了？",
+    tags: ["精致生活", "品质追求", "小资情调", "对自己好点"],
+    match: 78
+  },
+  {
+    name: "马化腾",
+    title: "低调大佬型人格",
+    emoji: "🐧",
+    desc: "你看似普通，实则深藏不露。低调是你的人生哲学，但关键时刻你的能量足以改变格局。不鸣则已，一鸣惊人！",
+    tags: ["低调大佬", "深藏不露", "一鸣惊人", "闷声发大财"],
+    match: 85
+  },
+  {
+    name: "王思聪",
+    title: "富二代型人格",
+    emoji: "👑",
+    desc: "你的人生没有金钱的压力，想买啥买啥，想干嘛干嘛。虽然有时候会被人说炫富，但你不在乎：钱是我自己...呃，是家里人的，但花着开心啊！",
+    tags: ["财务自由", "活出自我", "任性而为", "有钱任性"],
+    match: 77
+  },
+  {
+    name: "张三",
+    title: "法外狂徒型人格",
+    emoji: "⚖️",
+    desc: "你是个有故事的人。做事不按常理出牌，胆子大、路子野。规则是给普通人定的，而你...你就是要打破规则的那个人。",
+    tags: ["法外狂徒", "打破规则", "胆子大", "路子野"],
+    match: 76
+  },
+  {
+    name: "战神洛",
+    title: "中二少年型人格",
+    emoji: "⚔️",
+    desc: "你的内心住着一个少年，永远热血、永远中二。你说话喜欢带点排面，做事喜欢有点仪式感。虽然有时被说戏多，但这就是你的style！",
+    tags: ["中二少年", "热血本色", "戏多担当", "排面拉满"],
+    match: 75
+  },
+  {
+    name: "小丑竟是我自己",
+    title: "自嘲大师型人格",
+    emoji: "🃏",
+    desc: "与其让别人嘲笑你，不如你先嘲笑自己。你是自嘲界的天花板，任何尴尬到你这里都能变成段子。小丑不可怕，可怕的是你笑着笑着就真的成了小丑。",
+    tags: ["自嘲大师", "笑对人生", "小丑文学", "娱乐自己"],
+    match: 82
+  },
+  {
+    name: "摆烂达人",
+    title: "躺平主义型人格",
+    emoji: "🛋️",
+    desc: "努力不一定成功，但不努力一定很舒服。你深谙躺平的哲学，知道什么时候该冲，什么时候该躺。摆烂不是目的，而是为了更好地卷土重来！",
+    tags: ["躺平哲学", "摆烂达人", "能躺不坐", "以退为进"],
+    match: 88
+  },
+  {
+    name: "网抑云",
+    title: "深夜emo型人格",
+    emoji: "🌙",
+    desc: "一到深夜就感性上线，网易云成为你最好的朋友。虽然白天你是个正常人，但一到晚上就开始思考人生。那些文案好像都是为你写的。",
+    tags: ["深夜emo", "网抑云选手", "感性达人", "人均抑郁"],
+    match: 79
+  },
+  {
+    name: "干饭人",
+    title: "干饭至上型人格",
+    emoji: "🍜",
+    desc: "没有什么是一顿饭解决不了的，如果有，那就两顿。你的人生信条是：可以不谈恋爱，但不能不干饭。对你来说，美食是生命的意义。",
+    tags: ["干饭第一", "美食至上", "民以食为天", "唯美食不可辜负"],
+    match: 83
+  },
+  {
+    name: "内卷之王",
+    title: "卷王型人格",
+    emoji: "📚",
+    desc: "你不卷谁卷？别人躺着你站着，别人休息你学习。你是那个让同事害怕、让同学恐慌的存在。虽然卷得很累，但你不卷就焦虑啊！",
+    tags: ["卷王本王", "卷到飞起", "停不下来", "卷死他们"],
+    match: 84
+  },
+  {
+    name: "摸鱼带师",
+    title: "摸鱼大师型人格",
+    emoji: "🐟",
+    desc: "你是时间管理大师，带薪蹲坑、无薪加班、网购写周报都是基操。老板觉得你在工作，其实你在摸鱼。摸鱼一时爽，一直摸鱼一直爽！",
+    tags: ["摸鱼带师", "带薪蹲坑", "时间管理", "摸鱼一时爽"],
+    match: 87
+  }
+];
+
+// ====== 逻辑变量 ======
+let answers = [];
+let currentQ = 0;
+
+// 生成粒子背景
+function createParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 100 + 50;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 5 + 's';
+    p.style.animationDuration = (Math.random() * 5 + 6) + 's';
+    container.appendChild(p);
+  }
+}
+
+// 开始测试
+function startTest() {
+  document.getElementById('screen-cover').classList.remove('active');
+  document.getElementById('loading').classList.add('active');
+  
+  setTimeout(() => {
+    document.getElementById('loading').classList.remove('active');
+    renderQuestion(0);
+  }, 2000);
+}
+
+// 渲染题目
+function renderQuestion(index) {
+  // 移除之前的题目屏幕
+  const oldScreen = document.getElementById('screen-q');
+  if (oldScreen) oldScreen.remove();
+  
+  const q = questions[index];
+  const progress = ((index + 1) / questions.length * 100).toFixed(0);
+  
+  const screen = document.createElement('div');
+  screen.className = 'screen active';
+  screen.id = 'screen-q';
+  screen.innerHTML = `
+    <div class="q-header">
+      <span class="q-num">第 ${index + 1} / ${questions.length} 题</span>
+      <div class="q-progress">
+        <div class="q-progress-fill" style="width:${progress}%"></div>
+      </div>
+    </div>
+    <div class="q-card">
+      <div class="q-title">${q.title}</div>
+    </div>
+    <div class="options">
+      ${q.opts.map((opt, i) => `
+        <button class="opt" onclick="selectOpt(${index}, ${i})">${opt}</button>
+      `).join('')}
+    </div>
+  `;
+  
+  document.body.insertBefore(screen, document.getElementById('loading'));
+  
+  // 添加底部导航
+  renderBottomNav(index);
+}
+
+// 底部导航
+function renderBottomNav(index) {
+  let nav = document.querySelector('.bottom-nav');
+  if (!nav) {
+    nav = document.createElement('div');
+    nav.className = 'bottom-nav';
+    document.body.appendChild(nav);
+  }
+  
+  let dots = '';
+  const showDots = 10;
+  const start = Math.max(0, index - Math.floor(showDots / 2));
+  const end = Math.min(questions.length, start + showDots);
+  
+  for (let i = start; i < end; i++) {
+    let cls = 'nav-dot';
+    if (i < index) cls += ' done';
+    if (i === index) cls += ' current';
+    dots += `<div class="${cls}"></div>`;
+  }
+  
+  nav.innerHTML = `
+    <div class="nav-dots">${dots}</div>
+    <div class="nav-info">${index + 1} / ${questions.length}</div>
+  `;
+}
+
+// 选择选项
+function selectOpt(qIndex, optIndex) {
+  answers.push(optIndex);
+  
+  // 标记选中
+  const btns = document.querySelectorAll(`#screen-q .opt`);
+  btns.forEach((b, i) => {
+    b.classList.toggle('selected', i === optIndex);
+  });
+  
+  setTimeout(() => {
+    if (qIndex < questions.length - 1) {
+      renderQuestion(qIndex + 1);
+    } else {
+      showResult();
+    }
+  }, 400);
+}
+
+// 计算结果
+function calcResult() {
+  // 计分：每道题4个选项，对应不同的结果倾向
+  // 简化版：统计各选项分布
+  const scores = new Array(results.length).fill(0);
+  
+  // 定义每道题的选项对应哪些结果（简化逻辑）
+  answers.forEach((ans, q) => {
+    // 基础分配：前8题偏向某些人格，后12题偏向另一些
+    const baseIdx = (q * 8 + ans * 4) % results.length;
+    scores[baseIdx] += 3;
+    scores[(baseIdx + 1) % results.length] += 2;
+    scores[(baseIdx + 2) % results.length] += 1;
+  });
+  
+  // 找最高分
+  let maxIdx = 0;
+  let maxVal = 0;
+  scores.forEach((v, i) => {
+    if (v > maxVal) { maxVal = v; maxIdx = i; }
+  });
+  
+  // 避免平局
+  const tied = scores.filter(v => v === maxVal).length;
+  if (tied > 1) {
+    const indices = scores.map((v,i) => v === maxVal ? i : -1).filter(i => i >= 0);
+    maxIdx = indices[answers.length % indices.length];
+  }
+  
+  return results[maxIdx];
+}
+
+// 显示结果
+function showResult() {
+  const oldScreen = document.getElementById('screen-q');
+  if (oldScreen) oldScreen.remove();
+  const nav = document.querySelector('.bottom-nav');
+  if (nav) nav.remove();
+  
+  const r = calcResult();
+  
+  document.getElementById('screen-result').classList.add('active');
+  document.getElementById('result-content').innerHTML = `
+    <div class="result-badge">测试结果</div>
+    <div class="result-avatar">
+      <div class="result-avatar-inner">${r.emoji}</div>
+    </div>
+    <h2>${r.name}</h2>
+    <p class="result-subtitle">${r.title}</p>
+    <div class="result-match">
+      <div class="match-title">匹配度</div>
+      <div class="match-bar">
+        <div class="match-fill" style="width:0%" data-width="${r.match}%"></div>
+      </div>
+      <div class="match-text">${r.match}% 匹配</div>
+    </div>
+    <div class="result-desc">${r.desc}</div>
+    <div class="result-tags">
+      ${r.tags.map(t => `<span class="result-tag"># ${t}</span>`).join('')}
+    </div>
+    <div class="btn-group">
+      <button class="btn-retry" onclick="retry()">再测一次 🔄</button>
+      <button class="btn-share" onclick="shareResult()">分享给朋友 📤</button>
+    </div>
+  `;
+  
+  // 动画填充匹配度
+  setTimeout(() => {
+    const fill = document.querySelector('.match-fill');
+    if (fill) fill.style.width = fill.dataset.width + '%';
+  }, 100);
+}
+
+// 重试
+function retry() {
+  answers = [];
+  document.getElementById('screen-result').classList.remove('active');
+  document.getElementById('screen-cover').classList.add('active');
+}
+
+// 分享
+function shareResult() {
+  const r = calcResult();
+  const text = `我测出来是【${r.name}】！${r.title}！太准了！你也来试试？`;
+  if (navigator.share) {
+    navigator.share({ title: '鬼畜全明星人格测试', text: text });
+  } else {
+    navigator.clipboard.writeText(text);
+    alert('结果已复制到剪贴板！');
+  }
+}
+
+// 初始化
+createParticles();
+</script>
+</body>
+</html>
